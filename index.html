@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>test</title>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.22/require.min.js"></script>
+  <script type="text/javascript">
+    require.config({
+      baseUrl: './src'
+    });
+
+    function openFile(event) {
+      require(["Parser"],function(Parser){
+
+        var reader = new FileReader();
+
+        reader.onload = function() {
+          var input = new Uint8Array(reader.result);
+          var p = new Parser.Parser(input);
+          p.parse();
+          console.log(p);
+        };
+
+        var input = event.target;
+        reader.readAsArrayBuffer(input.files[0]);
+      });
+    }
+  </script>
+</head>
+<body>
+<input type="file" onchange='openFile(event);'><input>
+</body>
+</html>
