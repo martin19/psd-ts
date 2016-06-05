@@ -1,9 +1,10 @@
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
-import {IDescriptorInfoParser} from "./DescriptorInfoParser";
+import {IDescriptorInfoBlock} from "./DescriptorInfoBlock";
 import {Descriptor} from "../Descriptor";
+import {StreamWriter} from "../StreamWriter";
 
-export class GlbO implements IDescriptorInfoParser {
+export class GlbO implements IDescriptorInfoBlock {
   offset:number;
   length:number;
   value:Descriptor;
@@ -17,5 +18,14 @@ export class GlbO implements IDescriptorInfoParser {
     this.value = new Descriptor();
     this.value.parse(stream);
     this.length = stream.tell() - this.offset;
+  }
+
+
+  write(stream:StreamWriter):void {
+    this.value.write(stream);  
+  }
+
+  getLength():number {
+    return this.value.getLength();
   }
 }

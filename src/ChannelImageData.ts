@@ -7,6 +7,9 @@ import {ColorModeData} from "./ColorModeData";
 import {ChannelRLE} from "./ChannelRLE";
 import {ChannelRAW} from "./ChannelRAW";
 import {Color} from "./Color";
+import {StreamWriter} from "./StreamWriter";
+import {Layer} from "../../Layer/Layer";
+import {LayerInfo} from "./LayerInfo";
 
 export class ChannelImageData {
 
@@ -58,6 +61,65 @@ export class ChannelImageData {
     this.length = stream.tell() - this.offset;
   };
 
+
+  write(stream:StreamWriter, layerRecord : LayerRecord) {
+    for(var i = 0; i < this.channel.length; i++) {
+      stream.writeUint16(CompressionMethod.RLE);
+      this.channel[i].write(stream, layerRecord);
+    }
+  }
+  
+  /**
+   * Extract RGBA channel data from canvas. 
+   * @param canvas
+   * @param layerRecord
+   * @returns {null}
+   */
+  createChannels(canvas:HTMLCanvasElement, layerRecord:LayerRecord):void {
+    var ctx = canvas.getContext("2d");
+    var width:number = canvas.width;
+    var height:number = canvas.height;
+    var imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+    var pixelArray = imageData.data;
+
+    if (width === 0 || height === 0) {
+      return null;
+    }
+
+    this.channel = [];
+    this.channel.push(new ChannelRLE());
+    this.channel.push(new ChannelRLE());
+    this.channel.push(new ChannelRLE());
+    this.channel.push(new ChannelRLE());
+    this.channel[0].channel = new Uint8Array(width*height);
+    this.channel[1].channel = new Uint8Array(width*height);
+    this.channel[2].channel = new Uint8Array(width*height);
+    this.channel[3].channel = new Uint8Array(width*height);
+
+    var i = 0;
+    for (var y = 0; y < height; ++y) {
+      for (var x = 0; x < width; ++x) {
+        var index = (y * width + x);
+        (<Array<number>>this.channel[0].channel)[i] = pixelArray[index * 4 + 3];
+        (<Array<number>>this.channel[1].channel)[i] = pixelArray[index * 4    ];
+        (<Array<number>>this.channel[2].channel)[i] = pixelArray[index * 4 + 1];
+        (<Array<number>>this.channel[3].channel)[i] = pixelArray[index * 4 + 2];
+        i++;
+      }
+    }
+    
+    //compress channels
+    for(var i = 0; i < 4;i++){
+      (this.channel[i] as ChannelRLE).prepare(layerRecord);
+    }
+    
+    layerRecord.info = [
+      { id : -1, length : this.channel[0].getLength()},
+      { id : 0, length : this.channel[1].getLength()},
+      { id : 1, length : this.channel[2].getLength()},
+      { id : 2, length : this.channel[3].getLength()}
+    ];
+  }
 
   /**
    * 
@@ -133,5 +195,13 @@ export class ChannelImageData {
     ctx.putImageData(imageData, 0, 0);
 
     return canvas;
+  }
+
+  getLength() {
+    var length = 0;
+    for(var i = 0; i < this.channel.length; i++) {
+      length += this.channel[i].getLength();
+    }
+    return length;
   }
 }

@@ -1,8 +1,9 @@
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
-import {IDescriptorInfoParser} from "./DescriptorInfoParser";
+import {IDescriptorInfoBlock} from "./DescriptorInfoBlock";
+import {StreamWriter} from "../StreamWriter";
 
-export class alis implements IDescriptorInfoParser {
+export class alis implements IDescriptorInfoBlock {
 
   offset:number;
   length:number;
@@ -12,14 +13,24 @@ export class alis implements IDescriptorInfoParser {
   constructor() {
   }
 
-  parse(stream : StreamReader, length? : number, header? : Header) {
-  var length:number;
-  this.offset = stream.tell();
+  parse(stream:StreamReader, length?:number, header?:Header) {
+    var length:number;
+    this.offset = stream.tell();
 
-  length = stream.readUint32();
-  // TODO: きちんと parse する
-  this.value = stream.read(length);
+    length = stream.readUint32();
+    // TODO: きちんと parse する
+    this.value = stream.read(length);
 
-  this.length = stream.tell() - this.offset;
-}
+    this.length = stream.tell() - this.offset;
+  }
+
+  write(stream:StreamWriter) {
+    stream.writeUint32(this.value.length);
+    stream.write(this.value);
+  }
+  
+  getLength() {
+    this.length = this.value.length + 4;
+    return this.length;
+  }
 }

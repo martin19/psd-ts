@@ -1,8 +1,9 @@
-import {IAdditionalLayerInfoParser} from "./AdditionalLayerInfoParser";
+import {IAdditionalLayerInfoBlock} from "./AdditionalLayerInfoParser";
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
 import {Descriptor} from "../Descriptor";
-export class PlLd implements IAdditionalLayerInfoParser {
+import {StreamWriter} from "../StreamWriter";
+export class PlLd implements IAdditionalLayerInfoBlock {
 
   offset:number;
   length:number;
@@ -50,4 +51,23 @@ export class PlLd implements IAdditionalLayerInfoParser {
     this.length = stream.tell() - this.offset;
   }
 
+  write(stream:StreamWriter):void {
+    stream.writeString("plcL");
+    stream.writeUint32(3);
+    stream.writePascalString(this.id);
+    stream.writeInt32(this.page);
+    stream.writeInt32(this.totalPage);
+    stream.writeInt32(this.antiAlias);
+    stream.writeInt32(this.placedLayerType);
+    for(var i = 0; i < 8;i++) {
+      stream.writeFloat64(this.transform[i]);
+    }
+    stream.writeInt32(0);
+    stream.writeInt32(16);
+    this.descriptor.write(stream);
+  }
+
+  getLength():number {
+    return 4 + 4 + this.id.length + 4 + 4 + 4 + 4 + 8*8 + 4 + 4 + this.descriptor.getLength();
+  }
 }

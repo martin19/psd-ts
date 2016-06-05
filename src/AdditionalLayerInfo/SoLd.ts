@@ -1,8 +1,9 @@
-import {IAdditionalLayerInfoParser} from "./AdditionalLayerInfoParser";
+import {IAdditionalLayerInfoBlock} from "./AdditionalLayerInfoParser";
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
 import {Descriptor} from "../Descriptor";
-export class SoLd implements IAdditionalLayerInfoParser {
+import {StreamWriter} from "../StreamWriter";
+export class SoLd implements IAdditionalLayerInfoBlock {
 
   offset:number;
   length:number;
@@ -31,4 +32,15 @@ export class SoLd implements IAdditionalLayerInfoParser {
     this.length = stream.tell() - this.offset;
   }
 
+
+  write(stream:StreamWriter):void {
+    stream.writeString("soLD");
+    stream.writeUint32(4);
+    stream.writeUint32(16);
+    this.descriptor.write(stream);
+  }
+
+  getLength():number {
+    return 4 + 4 + 4 + this.descriptor.getLength();
+  }
 }

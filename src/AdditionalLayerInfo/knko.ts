@@ -1,7 +1,8 @@
-import {IAdditionalLayerInfoParser} from "./AdditionalLayerInfoParser";
+import {IAdditionalLayerInfoBlock} from "./AdditionalLayerInfoParser";
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
-export class knko implements IAdditionalLayerInfoParser {
+import {StreamWriter} from "../StreamWriter";
+export class knko implements IAdditionalLayerInfoBlock {
 
   offset:number;
   length:number;
@@ -22,4 +23,14 @@ export class knko implements IAdditionalLayerInfoParser {
     this.length = stream.tell() - this.offset;
   }
 
+  write(stream:StreamWriter):void {
+    stream.writeUint8(this.knockout ? 1 : 0);
+    for(var i = 0; i < 3;i++) {
+      stream.writeUint8(0);
+    }
+  }
+
+  getLength():number {
+    return 4;
+  }
 }

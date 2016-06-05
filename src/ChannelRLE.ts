@@ -1,15 +1,18 @@
 import {ChannelImage} from "./ChannelImage";
 import {StreamReader} from "./StreamReader";
 import {LayerRecord} from "./LayerRecord";
+import {StreamWriter} from "./StreamWriter";
 
 var USE_TYPEDARRAY : boolean = true;
 
 export class ChannelRLE extends ChannelImage {
 
   lineLength:Array<number>;
+  lines:Array<Array<number>>;
 
   constructor() {
     super();
+    this.channel = [];
   }
 
   parse(stream:StreamReader, layerRecord:LayerRecord, length:number) {
@@ -46,5 +49,36 @@ export class ChannelRLE extends ChannelImage {
     } else {
       this.channel = Array.prototype.concat.apply([], lines);
     }
+  }
+
+  prepare(layerRecord:LayerRecord) {
+    var lineLength:Array<number> = this.lineLength = [];
+    var lines:Array<Uint8Array> = this.lines = [];
+    var height = layerRecord.bottom - layerRecord.top;
+    var width = layerRecord.right - layerRecord.left;
+    for(var i =0; i < height; i++) {
+      var line = StreamWriter.createPackbits(this.channel.slice(i*width,i*width+width));
+      lines.push(line);
+      lineLength.push(line.length);
+    }
+  }
+  
+  write(stream:StreamWriter) {
+    for(var i = 0; i < this.lineLength.length; i++) {
+      stream.writeUint16(this.lineLength[i]);
+    }
+    for(var i = 0; i < this.lines.length;i++) {
+      stream.write(this.lines[i]);
+    }
+  }
+
+  getLength() {
+    var length = 0;
+    length += 2; //compression method
+    length += this.lineLength.length * 2;
+    for(var i = 0; i < this.lines.length; i++) {
+      length += this.lines[i].length;
+    }
+    return length;
   }
 }

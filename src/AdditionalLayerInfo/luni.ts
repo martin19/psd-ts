@@ -1,7 +1,8 @@
-import {IAdditionalLayerInfoParser} from "./AdditionalLayerInfoParser";
+import {IAdditionalLayerInfoBlock} from "./AdditionalLayerInfoParser";
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
-export class luni implements IAdditionalLayerInfoParser {
+import {StreamWriter} from "../StreamWriter";
+export class luni implements IAdditionalLayerInfoBlock {
 
   offset:number;
   length:number;
@@ -26,4 +27,13 @@ export class luni implements IAdditionalLayerInfoParser {
     this.length = stream.tell() - this.offset;
   }
 
+
+  write(stream:StreamWriter):void {
+    stream.writeUint32(this.layerName.length * 2);
+    stream.writeWideString(this.layerName);
+  }
+
+  getLength():number {
+    return 4 + this.layerName.length * 2;
+  }
 }

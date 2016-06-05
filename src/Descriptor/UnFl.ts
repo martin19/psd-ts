@@ -1,8 +1,9 @@
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
-import {IDescriptorInfoParser} from "./DescriptorInfoParser";
+import {IDescriptorInfoBlock} from "./DescriptorInfoBlock";
+import {StreamWriter} from "../StreamWriter";
 
-export class UnFl implements IDescriptorInfoParser {
+export class UnFl implements IDescriptorInfoBlock {
 
   offset:number;
   length:number;
@@ -27,5 +28,18 @@ export class UnFl implements IDescriptorInfoParser {
     }
 
     this.length = stream.tell() - this.offset;
+  }
+
+
+  write(stream:StreamWriter):void {
+    stream.writeString(this.key);
+    stream.writeUint32(this.value.length);
+    for(var i = 0; i < this.value.length; i++) {
+      stream.writeFloat64(this.value[i]);
+    }
+  }
+
+  getLength():number {
+    return 4 + 4 + this.value.length * 8;
   }
 }

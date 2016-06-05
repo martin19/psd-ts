@@ -1,6 +1,7 @@
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
-import {IDescriptorInfoParser, DescriptorInfoParser} from "./DescriptorInfoParser";
+import {IDescriptorInfoBlock, DescriptorInfoBlock} from "./DescriptorInfoBlock";
+import {StreamWriter} from "../StreamWriter";
 
 var Table:{[key:string]:string} = {
   'prop': 'prop',
@@ -12,7 +13,7 @@ var Table:{[key:string]:string} = {
   'name': 'TEXT'
 };
 
-export class _obj implements IDescriptorInfoParser {
+export class _obj implements IDescriptorInfoBlock {
 
   offset:number;
   length:number;
@@ -28,7 +29,7 @@ export class _obj implements IDescriptorInfoParser {
     var key:string;
     var type:string;
     /** @type {!{parse: function(PSD.StreamReader)}} */
-    var data:IDescriptorInfoParser;
+    var data:IDescriptorInfoBlock;
     var i:number;
 
     this.offset = stream.tell();
@@ -39,12 +40,12 @@ export class _obj implements IDescriptorInfoParser {
       key = stream.readString(4);
       type = Table[key];
 
-      if (typeof DescriptorInfoParser[type] !== 'function') {
+      if (typeof DescriptorInfoBlock[type] !== 'function') {
         console.error('OSType Key not implemented:', type);
         return;
       }
 
-      data = new (DescriptorInfoParser[type])();
+      data = new (DescriptorInfoBlock[type])();
       data.parse(stream);
 
       this.item.push({key: key, data: data});
@@ -53,4 +54,12 @@ export class _obj implements IDescriptorInfoParser {
     this.length = stream.tell() - this.offset;
   };
 
+
+  write(stream:StreamWriter):void {
+    throw "Object reference structure not implemented";
+  }
+
+  getLength():number {
+    return null;
+  }
 }

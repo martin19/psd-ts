@@ -1,8 +1,9 @@
-import {IAdditionalLayerInfoParser} from "./AdditionalLayerInfoParser";
+import {IAdditionalLayerInfoBlock} from "./AdditionalLayerInfoParser";
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
 import {Descriptor} from "../Descriptor";
-export class TySh implements IAdditionalLayerInfoParser {
+import {StreamWriter} from "../StreamWriter";
+export class TySh implements IAdditionalLayerInfoBlock {
 
   offset:number;
   length:number;
@@ -14,10 +15,6 @@ export class TySh implements IAdditionalLayerInfoParser {
   warpVersion:number;
   warpDescriptorVersion:number;
   warpData:Descriptor;
-  //left:Array<number>|Uint8Array;
-  //top:Array<number>|Uint8Array;
-  //right:Array<number>|Uint8Array;
-  //bottom:Array<number>|Uint8Array;
   left:number;
   top:number;
   right:number;
@@ -57,7 +54,7 @@ export class TySh implements IAdditionalLayerInfoParser {
     this.warpData.parse(stream);
 
 
-    // TODO: 4 Byte * 4?
+    // TODO: 4 Byte * 4? - Float32
     console.log('TySh implementation is incomplete');
     this.left = stream.readInt32();
     this.top = stream.readInt32();
@@ -86,4 +83,52 @@ export class TySh implements IAdditionalLayerInfoParser {
     this.length = stream.tell() - this.offset;
   }
 
+
+  write(stream:StreamWriter):void {
+    stream.writeUint16(1); //version
+    for(var i = 0; i < 6; i++) {
+      stream.writeFloat64(this.transform[i]); //transform
+    }
+    stream.writeInt16(50); //textversion
+    stream.writeUint32(16); //textdescriptor version
+    this.textData.write(stream);
+    stream.writeInt16(1); //warp version
+    stream.writeUint32(16); //warp descriptor version
+    this.warpData.write(stream);
+    stream.writeInt32(this.left);
+    stream.writeInt32(this.top);
+    stream.writeInt32(this.right);
+    stream.writeInt32(this.bottom);
+
+    //padding
+    var length = this.getUnpaddedLength();
+    if(0 != length % 4) {
+      var paddingLength = 4 - length % 4;
+    }
+    for(var i = 0; i < paddingLength; i++) {
+      stream.writeUint8(0);
+    }
+  }
+
+  getUnpaddedLength():number {
+    var length = 0;
+    length += 2; //version
+    length += 6*8; //transform
+    length += 2; //textversion
+    length += 4; //text descriptor version
+    length += this.textData.getLength(); //text data
+    length += 2; //warp version
+    length += 4; //warp descriptor version
+    length += this.warpData.getLength(); //warp data
+    length += 4 * 4; //rectangle
+    return length;
+  }
+
+  getLength():number {
+    var length = this.getUnpaddedLength();
+    if(0 != length % 4) {
+      length += (4 - length % 4);
+    }
+    return length;
+  }
 }

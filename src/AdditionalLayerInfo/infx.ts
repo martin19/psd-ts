@@ -1,7 +1,8 @@
-import {IAdditionalLayerInfoParser} from "./AdditionalLayerInfoParser";
+import {IAdditionalLayerInfoBlock} from "./AdditionalLayerInfoParser";
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
-export class infx implements IAdditionalLayerInfoParser {
+import {StreamWriter} from "../StreamWriter";
+export class infx implements IAdditionalLayerInfoBlock {
 
   offset : number;
   blendInteriorElements : boolean;
@@ -21,4 +22,15 @@ export class infx implements IAdditionalLayerInfoParser {
     this.length = stream.tell() - this.offset;
   }
 
+
+  write(stream:StreamWriter):void {
+    stream.writeUint8(this.blendInteriorElements ? 1 : 0);
+    for(var i = 0; i < 3;i++) {
+      stream.writeUint8(0);
+    }
+  }
+
+  getLength():number {
+    return 4;
+  }
 }

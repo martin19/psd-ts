@@ -2,6 +2,7 @@ import {LayerRecord} from "./LayerRecord";
 import {ChannelImageData} from "./ChannelImageData";
 import {StreamReader} from "./StreamReader";
 import {Header} from "./Header";
+import {StreamWriter} from "./StreamWriter";
 export class LayerInfo {
   offset:number;
   length:number;
@@ -39,6 +40,33 @@ export class LayerInfo {
       this.channelImageData[i] = channelImageData;
     }
     stream.seek(this.offset + this.length, 0);
+  }
+  
+  write(stream:StreamWriter, header:Header) {
+    var i : number;
+    var il : number;
+    
+    stream.writeUint32(this.getLength());
+
+    stream.writeInt16(-this.layerRecord.length);
+
+    for (i=0, il = this.layerRecord.length; i < il; ++i) {
+      this.layerRecord[i].write(stream, header);
+    }
+
+    for (i=0, il = this.layerRecord.length; i < il; ++i) {
+      this.channelImageData[i].write(stream, this.layerRecord[i]);
+    }
+  }
+  
+  getLength() {
+    var length = 0;
+    length += 2; //layer count
+    for(var i = 0; i < this.layerRecord.length; i++) {
+      length += this.layerRecord[i].getLength();
+      length += this.channelImageData[i].getLength();
+    }
+    return length;
   }
 
 }

@@ -1,4 +1,5 @@
 import {StreamReader} from "../StreamReader";
+import {StreamWriter} from "../StreamWriter";
 import {clbl} from "./clbl";
 import {Header} from "../Header";
 import {fxrp} from "./fxrp";
@@ -23,11 +24,14 @@ import {TySh} from "./TySh";
 import {vmsk} from "./vmsk";
 import {PlLd} from "./PlLd";
 
-export interface IAdditionalLayerInfoParser {
+
+export interface IAdditionalLayerInfoBlock {
   parse(stream : StreamReader, length? : number, header? : Header):void;
+  write(stream : StreamWriter, header?:Header):void;
+  getLength(header?:Header):number;
 }
 
-export var AdditionalLayerInfoParser : {[id:string]:any} = {
+export var AdditionalLayerInfoBlock : {[id:string]:any} = {
   'clbl' : clbl,
   'fxrp' : fxrp,
   'GdFl' : GdFl,

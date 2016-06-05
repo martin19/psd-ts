@@ -1,8 +1,9 @@
-import {IAdditionalLayerInfoParser} from "./AdditionalLayerInfoParser";
+import {IAdditionalLayerInfoBlock} from "./AdditionalLayerInfoParser";
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
 import {PathRecord} from "../PathRecord";
-export class vmsk implements IAdditionalLayerInfoParser {
+import {StreamWriter} from "../StreamWriter";
+export class vmsk implements IAdditionalLayerInfoBlock {
 
   offset:number;
   length:number;
@@ -29,4 +30,14 @@ export class vmsk implements IAdditionalLayerInfoParser {
     this.length = stream.tell() - this.offset;
   }
 
+
+  write(stream:StreamWriter):void {
+    stream.writeUint32(3);
+    stream.writeUint32(this.flags);
+    throw "PathRectord serialization not implemented."
+  }
+
+  getLength():number {
+    return 8;
+  }
 }

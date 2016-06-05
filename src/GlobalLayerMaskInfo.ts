@@ -1,5 +1,6 @@
 import {StreamReader} from "./StreamReader";
 import {Header} from "./Header";
+import {StreamWriter} from "./StreamWriter";
 
 export class GlobalLayerMaskInfo {
 
@@ -34,4 +35,23 @@ export class GlobalLayerMaskInfo {
     stream.seek(this.offset + this.length, 0);
   }
 
+  write(stream:StreamWriter, header?:Header) {
+    stream.writeUint32(0);
+
+    //TODO: find out when this information is required
+    // stream.writeUint32(this.getLength()-4);
+    // stream.writeUint16(this.overlayColorSpace);
+    // for(var i = 0; i < 4;i++) {
+    //   stream.writeUint16(this.colorComponents[i]);
+    // }
+    // stream.writeUint16(this.opacity);
+    // stream.writeUint8(this.kind);
+    // stream.write([0,0,0]);
+  }
+
+  getLength():number {
+    return 4;
+    //TODO: find out when this information is required
+    //return 4 + 2 + 8 + 2 + 1 + 3;
+  }
 }

@@ -1,6 +1,7 @@
 import {Image} from "./Image";
 import {Header} from "./Header";
 import {StreamReader} from "./StreamReader";
+import {StreamWriter} from "./StreamWriter";
 export class ImageRAW extends Image {
 
 
@@ -19,6 +20,15 @@ export class ImageRAW extends Image {
     for (channelIndex = 0; channelIndex < channels; ++channelIndex) {
       channel[channelIndex] = stream.read(size);
     }
-  };
+  }
 
+  write(stream:StreamWriter, header:Header):void {
+    var width:number = header.columns;
+    var height:number = header.rows;
+    var channels:number = header.channels;
+    var size:number = width * height * (header.depth / 8);
+    for(var i = 0; i < channels; i++) {
+      stream.write(this.channel[i].slice(i*size,(i+1)*size));
+    }
+  }
 }

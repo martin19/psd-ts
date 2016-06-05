@@ -1,7 +1,8 @@
-import {IAdditionalLayerInfoParser} from "./AdditionalLayerInfoParser";
+import {IAdditionalLayerInfoBlock} from "./AdditionalLayerInfoParser";
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
-export class lsct implements IAdditionalLayerInfoParser {
+import {StreamWriter} from "../StreamWriter";
+export class lsct implements IAdditionalLayerInfoBlock {
 
   offset:number;
   length:number;
@@ -30,4 +31,14 @@ export class lsct implements IAdditionalLayerInfoParser {
     this.length = stream.tell() - this.offset;
   }
 
+
+  write(stream:StreamWriter):void {
+    stream.writeUint32(this.type);
+    //stream.writeString("8BIM");
+    //stream.writeString(this.key);
+  }
+
+  getLength():number {
+    return 4;
+  }
 }

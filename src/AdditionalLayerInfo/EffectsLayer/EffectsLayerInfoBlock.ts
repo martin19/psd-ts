@@ -7,12 +7,15 @@ import {iglw} from "./iglw";
 import {isdw} from "./isdw";
 import {sofi} from "./sofi";
 import {oglw} from "./oglw";
+import {StreamWriter} from "../../StreamWriter";
 
-export interface IEffectsLayerInfoParser {
+export interface IEffectsLayerInfoBlock {
   parse(stream : StreamReader, length? : number, header? : Header):void;
+  write(stream : StreamWriter):void;
+  getLength():number;
 }
 
-export var EffectsLayerInfoParser : {[id:string]:any} = {
+export var EffectsLayerInfoBlock : {[id:string]:any} = {
     "bevl" : bevl, 
     "cmnS" : cmnS, 
     "dsdw" : dsdw, 

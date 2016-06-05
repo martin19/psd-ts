@@ -1,7 +1,8 @@
 import {Header} from "../../Header";
 import {StreamReader} from "../../StreamReader";
-import {IEffectsLayerInfoParser} from "./EffectsLayerInfoParser";
-export class dsdw implements IEffectsLayerInfoParser {
+import {IEffectsLayerInfoBlock} from "./EffectsLayerInfoBlock";
+import {StreamWriter} from "../../StreamWriter";
+export class dsdw implements IEffectsLayerInfoBlock {
 
   offset:number;
   length:number;
@@ -54,5 +55,32 @@ export class dsdw implements IEffectsLayerInfoParser {
     ];
 
     this.length = stream.tell() - this.offset;
+  }
+
+
+  write(stream:StreamWriter) {
+    stream.writeUint32(51);
+    stream.writeUint32(2);
+    stream.writeInt32(this.blur);
+    stream.writeInt32(this.intensity);
+    stream.writeInt32(this.angle);
+    stream.writeInt32(this.distance);
+    stream.writeUint16(0);
+    for(var i = 0; i < 4; i++) {
+      stream.writeUint16(this.color[i]);
+    }
+    stream.writeString(this.signature);
+    stream.writeString(this.blend);
+    stream.writeUint8(this.enabled ? 1 : 0);
+    stream.writeUint8(this.use ? 1 : 0);
+    stream.writeUint8(this.opacity);
+    stream.writeUint16(0);
+    for(var i = 0; i < 4; i++) {
+      stream.writeUint16(this.nativeColor[i]);
+    }
+  }
+
+  getLength():number {
+    return 55;
   }
 }

@@ -6,13 +6,14 @@ import {ColorModeData} from "./ColorModeData";
 import {Color} from "./Color";
 import {ImageRLE} from "./ImageRLE";
 import {ImageRAW} from "./ImageRAW";
+import {StreamWriter} from "./StreamWriter";
+import {ChannelRLE} from "./ChannelRLE";
 export class PSDImageData {
 
   offset:number;
   length:number;
   compressionMethod:CompressionMethod;
   image:Image;
-
 
   constructor() {
   }
@@ -35,7 +36,46 @@ export class PSDImageData {
 
     this.length = stream.tell() - this.offset;
   };
+  
+  write(stream:StreamWriter, header?:Header) {
+    stream.writeUint16(this.compressionMethod);
+    this.image.write(stream, header);
+  }
 
+  /**
+   * Extract RGBA channel data from canvas.
+   * @param canvas
+   * @returns {null}
+   */
+  createChannels(canvas:HTMLCanvasElement):void {
+    var ctx = canvas.getContext("2d");
+    var width:number = canvas.width;
+    var height:number = canvas.height;
+    var imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+    var pixelArray = imageData.data;
+
+    if (width === 0 || height === 0) {
+      return null;
+    }
+
+    this.image = new ImageRLE();
+    this.image.channel.push(new Uint8Array(width*height));
+    this.image.channel.push(new Uint8Array(width*height));
+    this.image.channel.push(new Uint8Array(width*height));
+    this.image.channel.push(new Uint8Array(width*height));
+
+    var i = 0;
+    for (var y = 0; y < height; ++y) {
+      for (var x = 0; x < width; ++x) {
+        var index = (y * width + x);
+        this.image.channel[0][i]=pixelArray[index * 4 + 3];
+        this.image.channel[1][i]=pixelArray[index * 4    ];
+        this.image.channel[2][i]=pixelArray[index * 4 + 1];
+        this.image.channel[3][i]=pixelArray[index * 4 + 2];
+        i++;
+      }
+    }
+  }
 
   createCanvas(header:Header, colorModeData:ColorModeData) {
     var canvas:HTMLCanvasElement = document.createElement('canvas');

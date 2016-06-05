@@ -1,12 +1,13 @@
-import {IAdditionalLayerInfoParser} from "./AdditionalLayerInfoParser";
+import {IAdditionalLayerInfoBlock} from "./AdditionalLayerInfoParser";
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
-export class shmd implements IAdditionalLayerInfoParser {
+import {StreamWriter} from "../StreamWriter";
+export class shmd implements IAdditionalLayerInfoBlock {
 
   offset:number;
   length:number;
   items:number;
-  metadata:Array<any>;
+  metadata:Array<{ signature : string, key : string, copy : number, data : Array<number>|Uint8Array }>;
 
   constructor() {
   }
@@ -17,7 +18,7 @@ export class shmd implements IAdditionalLayerInfoParser {
     var copy:number;
     var length:number;
     var data:Array<number>|Uint8Array;
-    var metadata:Array<any> = this.metadata = [];
+    this.metadata = [];
     var i:number;
     var il:number;
 
@@ -34,15 +35,36 @@ export class shmd implements IAdditionalLayerInfoParser {
       data = stream.read(length);
 
       // TODO: オブジェクトではなく型をつくる
-      metadata[i] = {
+      this.metadata.push({
         signature: signature,
         key: key,
         copy: copy,
         data: data
-      };
+      });
     }
 
     this.length = stream.tell() - this.offset;
   }
 
+
+  write(stream:StreamWriter):void {
+    stream.writeUint32(this.metadata.length);
+    for(var i = 0; i < this.metadata.length; i++) {
+      var m = this.metadata[i];
+      stream.writeString(m.signature);
+      stream.writeString(m.key);
+      stream.writeUint8(m.copy);
+      for(var j = 0; j < 3; j++) stream.writeUint8(0);
+      stream.writeUint32(m.data.length);
+      stream.write(m.data);
+    }
+  }
+
+  getLength():number {
+    var length = 4;
+    for(var i = 0; i < this.metadata.length; i++) {
+      length += 4 + 4 + 4 + 4 + this.metadata[i].data.length;
+    }
+    return length;
+  }
 }

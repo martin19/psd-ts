@@ -1,8 +1,9 @@
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
-import {IDescriptorInfoParser} from "./DescriptorInfoParser";
+import {IDescriptorInfoBlock} from "./DescriptorInfoBlock";
+import {StreamWriter} from "../StreamWriter";
 
-export class bool implements IDescriptorInfoParser {
+export class bool implements IDescriptorInfoBlock {
 
   offset:number;
   length:number;
@@ -16,5 +17,13 @@ export class bool implements IDescriptorInfoParser {
     this.offset = stream.tell();
     this.value = !!stream.readUint8();
     this.length = stream.tell() - this.offset;
+  }
+
+  write(stream:StreamWriter) {
+    stream.writeUint8(this.value ? 1 : 0);
+  }
+
+  getLength() {
+    return 1;
   }
 }

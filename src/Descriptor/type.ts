@@ -1,8 +1,9 @@
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
-import {IDescriptorInfoParser} from "./DescriptorInfoParser";
+import {IDescriptorInfoBlock} from "./DescriptorInfoBlock";
+import {StreamWriter} from "../StreamWriter";
 
-export class type implements IDescriptorInfoParser {
+export class type implements IDescriptorInfoBlock {
 
   offset:number;
   length:number;
@@ -24,5 +25,17 @@ export class type implements IDescriptorInfoParser {
     this.classId = stream.readString(length);
 
     this.length = stream.tell() - this.offset;
+  }
+
+
+  write(stream:StreamWriter):void {
+    stream.writeUint32(this.name.length * 2);
+    stream.writeWideString(this.name);
+    stream.writeUint32(this.classId.length);
+    stream.writeString(this.classId);
+  }
+
+  getLength():number {
+    return this.name.length * 2 + 4 + this.classId.length + 4;
   }
 }

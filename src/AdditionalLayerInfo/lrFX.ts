@@ -1,14 +1,15 @@
-import {IAdditionalLayerInfoParser} from "./AdditionalLayerInfoParser";
+import {IAdditionalLayerInfoBlock} from "./AdditionalLayerInfoParser";
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
-import {EffectsLayerInfoParser, IEffectsLayerInfoParser} from "./EffectsLayer/EffectsLayerInfoParser";
-export class lrFX implements IAdditionalLayerInfoParser {
+import {EffectsLayerInfoBlock, IEffectsLayerInfoBlock} from "./EffectsLayer/EffectsLayerInfoBlock";
+import {StreamWriter} from "../StreamWriter";
+export class lrFX implements IAdditionalLayerInfoBlock {
 
   offset:number;
   length:number;
   version:number;
   count:number;
-  effect:Array<{key:string, effect:IEffectsLayerInfoParser}>;
+  effect:Array<{key:string, effect:IEffectsLayerInfoBlock}>;
   key : string;
 
   constructor() {
@@ -17,8 +18,7 @@ export class lrFX implements IAdditionalLayerInfoParser {
   parse(stream:StreamReader, length?:number, header?:Header) {
     var signature:string;
     var key:string;
-    /** @type {{parse: function(PSD.StreamReader)}} */
-    var effect:IEffectsLayerInfoParser;
+    var effect:IEffectsLayerInfoBlock;
     var i:number;
 
     this.offset = stream.tell();
@@ -36,8 +36,8 @@ export class lrFX implements IAdditionalLayerInfoParser {
       }
 
       this.key = key = stream.readString(4);
-      if (typeof EffectsLayerInfoParser[this.key] === 'function') {
-        effect = new (EffectsLayerInfoParser[this.key])();
+      if (typeof EffectsLayerInfoBlock[this.key] === 'function') {
+        effect = new (EffectsLayerInfoBlock[this.key])();
         effect.parse(stream);
         this.effect[i] = {
           key: key,
@@ -52,4 +52,22 @@ export class lrFX implements IAdditionalLayerInfoParser {
     this.length = stream.tell() - this.offset;
   }
 
+  write(stream:StreamWriter) {
+    stream.writeUint16(this.version);
+    stream.writeUint16(this.effect.length);
+    for(var i = 0; i < this.effect.length;i++) {
+      stream.writeString("8BIM");
+      stream.writeString(this.effect[i].key);
+      this.effect[i].effect.write(stream);
+    }
+  }
+
+
+  getLength():number {
+    var length = 4;
+    for(var i = 0; i < this.effect.length; i++) {
+      length += 4 + this.effect[i].effect.getLength();
+    }
+    return length;
+  }
 }

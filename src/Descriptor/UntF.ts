@@ -1,8 +1,9 @@
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
-import {IDescriptorInfoParser} from "./DescriptorInfoParser";
+import {IDescriptorInfoBlock} from "./DescriptorInfoBlock";
+import {StreamWriter} from "../StreamWriter";
 
-export class UntF implements IDescriptorInfoParser {
+export class UntF implements IDescriptorInfoBlock {
 
   offset:number;
   length:number;
@@ -18,5 +19,15 @@ export class UntF implements IDescriptorInfoParser {
     this.units = stream.readString(4);
     this.value = stream.readFloat64();
     this.length = stream.tell() - this.offset;
+  }
+
+
+  write(stream:StreamWriter):void {
+    stream.writeString(this.units);
+    stream.writeFloat64(this.value);
+  }
+
+  getLength():number {
+    return 4 + 8;
   }
 }

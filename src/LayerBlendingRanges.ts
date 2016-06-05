@@ -1,4 +1,5 @@
 import {StreamReader} from "./StreamReader";
+import {StreamWriter} from "./StreamWriter";
 
 export class LayerBlendingRanges {
 
@@ -40,6 +41,22 @@ export class LayerBlendingRanges {
         /* destination range */ stream.readUint32()
       ]);
     }
-  };
+  }
+
+  getLength() {
+    this.length = 8 + this.channel.length * 8 + 4;
+    return this.length;
+  }
+
+  write(stream:StreamWriter) {
+    stream.writeUint32(this.getLength()-4);
+    stream.writeUint16(this.black);
+    stream.writeUint16(this.white);
+    stream.writeUint32(this.destRange);
+    for(var i = 0; i < this.channel.length; i++) {
+      stream.writeUint32(this.channel[i][0]);
+      stream.writeUint32(this.channel[i][1]);
+    }
+  }
 
 }

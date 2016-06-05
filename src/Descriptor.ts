@@ -1,5 +1,6 @@
 import {StreamReader} from "./StreamReader";
-import {IDescriptorInfoParser, DescriptorInfoParser} from "./Descriptor/DescriptorInfoParser";
+import {IDescriptorInfoBlock, DescriptorInfoBlock} from "./Descriptor/DescriptorInfoBlock";
+import {StreamWriter} from "./StreamWriter";
 export class Descriptor {
 
   offset:number;
@@ -7,7 +8,7 @@ export class Descriptor {
   name:string;
   classId:string;
   items:number;
-  item:Array<{key:string, data:any}>;
+  item:Array<{key:string, type:string, data:IDescriptorInfoBlock}>;
 
 
   constructor() {
@@ -19,7 +20,7 @@ export class Descriptor {
     var type:string;
     var i:number;
     var il:number;
-    var data:IDescriptorInfoParser;
+    var data:IDescriptorInfoBlock;
 
     this.offset = stream.tell();
 
@@ -37,19 +38,65 @@ export class Descriptor {
       key = stream.readString(length);
       type = stream.readString(4);
 
-      if (typeof DescriptorInfoParser[type] !== 'function') {
+      if (typeof DescriptorInfoBlock[type] !== 'function') {
         console.warn('OSType Key not implemented:', type);
         //console.log(hoge, String.fromCharCode.apply(null, hoge));
         break;
       }
 
-      data = new DescriptorInfoParser[type]();
+      data = new DescriptorInfoBlock[type]();
       data.parse(stream);
 
-      this.item.push({key: key, data: data});
+      this.item.push({key: key, type: type, data: data});
     }
 
     this.length = stream.tell() - this.offset;
   }
 
+  write(stream:StreamWriter) {
+    var i : number;
+    var il : number;
+
+    stream.writeUint32(this.name.length);
+    stream.writeWideString(this.name);
+    if(this.classId.length === 4) {
+      stream.writeUint32(0);
+    } else {
+      stream.writeUint32(this.classId.length);
+    }
+    stream.writeString(this.classId);
+    stream.writeUint32(this.item.length);
+
+    for (i = 0, il = this.item.length; i < il; ++i) {
+
+      if(this.item[i].key.length === 4) {
+        stream.writeUint32(0);
+      } else {
+        stream.writeUint32(this.item[i].key.length);
+      }
+      stream.writeString(this.item[i].key);
+      stream.writeString(this.item[i].type);
+
+
+      if (typeof DescriptorInfoBlock[this.item[i].type] !== 'function') {
+        console.warn('OSType Key not implemented:', this.item[i].key);
+        break;
+      }
+
+      this.item[i].data.write(stream);
+    }
+  }
+  
+  getLength() {
+    var length = 0;
+    length += 4;  //name length field
+    length += this.name.length*2; //name string
+    length += 4; //class id length
+    length += this.classId.length; //classid string
+    length += 4; //number of items in descriptor
+    for(var i = 0; i < this.item.length; i++) {
+      length += 4 + this.item[i].key.length + this.item[i].type.length + this.item[i].data.getLength();
+    }
+    return length;
+  }
 }

@@ -1,7 +1,8 @@
 import {Header} from "../../Header";
 import {StreamReader} from "../../StreamReader";
-import {IEffectsLayerInfoParser} from "./EffectsLayerInfoParser";
-export class cmnS implements IEffectsLayerInfoParser {
+import {IEffectsLayerInfoBlock} from "./EffectsLayerInfoBlock";
+import {StreamWriter} from "../../StreamWriter";
+export class cmnS implements IEffectsLayerInfoBlock {
 
   offset:number;
   length:number;
@@ -24,5 +25,17 @@ export class cmnS implements IEffectsLayerInfoParser {
     stream.seek(2);
 
     this.length = stream.tell() - this.offset;
+  }
+
+
+  write(stream:StreamWriter) {
+    stream.writeUint32(7);
+    stream.writeUint32(0);
+    stream.writeUint8(1);
+    stream.writeUint16(0);
+  }
+
+  getLength():number {
+    return 11;
   }
 }

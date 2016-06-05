@@ -1,7 +1,8 @@
-import {IAdditionalLayerInfoParser} from "./AdditionalLayerInfoParser";
+import {IAdditionalLayerInfoBlock} from "./AdditionalLayerInfoParser";
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
-export class lnsr implements IAdditionalLayerInfoParser {
+import {StreamWriter} from "../StreamWriter";
+export class lnsr implements IAdditionalLayerInfoBlock {
 
   offset:number;
   length:number;
@@ -17,4 +18,12 @@ export class lnsr implements IAdditionalLayerInfoParser {
     this.length = stream.tell() - this.offset;
   }
 
+
+  write(stream:StreamWriter):void {
+    stream.writeString(this.id);
+  }
+
+  getLength():number {
+    return this.id.length;
+  }
 }

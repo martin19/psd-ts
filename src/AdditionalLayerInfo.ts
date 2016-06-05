@@ -1,9 +1,10 @@
 
 import {StreamReader} from "./StreamReader";
 import {Header} from "./Header";
-import {AdditionalLayerInfoParser, IAdditionalLayerInfoParser} from "./AdditionalLayerInfo/AdditionalLayerInfoParser";
+import {AdditionalLayerInfoBlock, IAdditionalLayerInfoBlock} from "./AdditionalLayerInfo/AdditionalLayerInfoParser";
+import {StreamWriter} from "./StreamWriter";
 
-var COMPILED:boolean = true;
+var COMPILED:boolean = false;
 
 export class AdditionalLayerInfo {
 
@@ -11,9 +12,7 @@ export class AdditionalLayerInfo {
   length:number;
   signature:string;
   key:string;
-  data:Array<number>|Uint8Array;
-  /** @type {{parse: function(PSD.StreamReader, number, PSD.Header)}} */
-  info : IAdditionalLayerInfoParser;
+  info : IAdditionalLayerInfoBlock;
 
   constructor() {
   }
@@ -29,8 +28,8 @@ export class AdditionalLayerInfo {
 
     // 実装されている key の場合はパースを行う
     // 各 key の実装は AdditionaLayerInfo ディレクトリにある
-    if (typeof AdditionalLayerInfoParser[this.key] === 'function') {
-      this.info = new (AdditionalLayerInfoParser[this.key])() as IAdditionalLayerInfoParser;
+    if (typeof AdditionalLayerInfoBlock[this.key] === 'function') {
+      this.info = new (AdditionalLayerInfoBlock[this.key])() as IAdditionalLayerInfoBlock;
       this.info.parse(stream, length, header);
     } else {
       console.warn('additional layer information: not implemented', this.key);
@@ -40,11 +39,30 @@ export class AdditionalLayerInfo {
     if (stream.tell() - (this.offset + this.length) !== 0) {
       if (!COMPILED) {
         //   console.log(stream.fetch(stream.tell(), (this.offset + this.length)), this.offset + this.length);
-        console.log(this.key, stream.tell() - (this.offset + this.length));
+        console.log("Error: difference between expected offset and real offset in " + this.key + " Difference:" + (stream.tell() - (this.offset + this.length)));
       }
     }
 
     stream.seek(this.offset + this.length, 0);
+  }
+  
+  write(stream:StreamWriter, header:Header) {
+    stream.writeString("8BIM");
+    stream.writeString(this.key);
+    if(typeof AdditionalLayerInfoBlock[this.key] === "function") {
+      var lib = (this.info as IAdditionalLayerInfoBlock);
+      stream.writeUint32(lib.getLength());
+      lib.write(stream);  
+    }
+  }
+
+  getLength() {
+    var length = 12;
+    if(typeof AdditionalLayerInfoBlock[this.key] === "function") {
+      var lib = (this.info as IAdditionalLayerInfoBlock);
+      length += lib.getLength();
+    }
+    return length;
   }
 
 }

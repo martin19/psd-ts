@@ -1,5 +1,6 @@
 import {StreamReader} from "./StreamReader";
 import {ColorMode} from "./Enum";
+import {StreamWriter} from "./StreamWriter";
 export class Header {
 
   offset:number;
@@ -31,5 +32,16 @@ export class Header {
     this.colorMode = stream.readUint16();
 
     this.length = stream.tell() - this.offset;
-  };
+  }
+  
+  write(stream:StreamWriter) {
+    stream.writeString("8BPS");
+    stream.writeUint16(1);
+    stream.write([0,0,0,0,0,0]);
+    stream.writeUint16(this.channels);
+    stream.writeUint32(this.rows);
+    stream.writeUint32(this.columns);
+    stream.writeUint16(this.depth);
+    stream.writeUint16(this.colorMode);
+  }
 }

@@ -1,7 +1,8 @@
 import {Header} from "../../Header";
 import {StreamReader} from "../../StreamReader";
-import {IEffectsLayerInfoParser} from "./EffectsLayerInfoParser";
-export class sofi implements IEffectsLayerInfoParser {
+import {IEffectsLayerInfoBlock} from "./EffectsLayerInfoBlock";
+import {StreamWriter} from "../../StreamWriter";
+export class sofi implements IEffectsLayerInfoBlock {
 
   offset:number;
   length:number;
@@ -53,5 +54,29 @@ export class sofi implements IEffectsLayerInfoParser {
     ];
 
     this.length = stream.tell() - this.offset;
+  }
+
+
+  write(stream:StreamWriter) {
+    stream.writeUint32(34);
+    stream.writeUint32(2);
+    stream.writeString(this.blend);
+    stream.writeUint16(0);
+
+    for(var i = 0; i < 4; i++) {
+      stream.writeUint16(this.color[i]);
+    }
+
+    stream.writeUint8(this.opacity);
+    stream.writeUint8(this.enabled ? 1 : 0);
+
+    stream.writeUint16(0);
+    for(var i = 0; i < 4; i++) {
+      stream.writeUint16(this.nativeColor[i]);
+    }
+  }
+
+  getLength():number {
+    return 38;
   }
 }

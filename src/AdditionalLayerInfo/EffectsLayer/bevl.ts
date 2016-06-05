@@ -1,7 +1,8 @@
 import {Header} from "../../Header";
 import {StreamReader} from "../../StreamReader";
-import {IEffectsLayerInfoParser} from "./EffectsLayerInfoParser";
-export class bevl implements IEffectsLayerInfoParser {
+import {IEffectsLayerInfoBlock} from "./EffectsLayerInfoBlock";
+import {StreamWriter} from "../../StreamWriter";
+export class bevl implements IEffectsLayerInfoBlock {
 
 
   offset : number;
@@ -15,16 +16,16 @@ export class bevl implements IEffectsLayerInfoParser {
   highlightBlendModeKey : string;
   shadowBlendModeSignature : string;
   shadowBlendModeKey : string;
-  highlightColor : Array<any>;
+  highlightColor : Array<number>; //4
   bevelStyle : number;
   highlightOpacity : number;
   shadowOpacity : number;
-  shadowColor : Array<any>;
+  shadowColor : Array<any>; //4
   enabled : boolean;
   use :boolean;
   up : boolean;
-  readHighlightColor : Array<any>;
-  readShadowColor : Array<any>;
+  readHighlightColor : Array<number>;
+  readShadowColor : Array<number>;
 
   parse(stream : StreamReader, length? : number, header? : Header) {
     this.offset = stream.tell();
@@ -78,4 +79,48 @@ export class bevl implements IEffectsLayerInfoParser {
     this.length = stream.tell() - this.offset;
   }
 
+
+  write(stream:StreamWriter) {
+    stream.writeUint32(78);
+    stream.writeUint32(2);
+    stream.writeInt32(this.angle);
+    stream.writeInt32(this.strength);
+    stream.writeInt32(this.blur);
+    stream.writeString(this.highlightBlendModeSignature);
+    stream.writeString(this.highlightBlendModeKey);
+    stream.writeString(this.shadowBlendModeSignature);
+    stream.writeString(this.shadowBlendModeKey);
+
+    stream.writeUint16(0);
+    for(var i = 0; i < 4; i++) {
+      stream.writeUint16(this.highlightColor[i]);
+    }
+    stream.writeUint16(0);
+    for(var i = 0; i < 4; i++) {
+      stream.writeUint16(this.shadowColor[i]);
+    }
+
+    stream.writeUint8(this.bevelStyle);
+    stream.writeUint8(this.highlightOpacity);
+    stream.writeUint8(this.shadowOpacity);
+
+    stream.writeUint8(this.enabled ? 1 : 0);
+    stream.writeUint8(this.use ? 1 : 0);
+    stream.writeUint8(this.up ? 1 : 0);
+
+    if(this.version === 2) {
+      stream.writeUint16(0);
+      for(var i = 0; i < 4; i++) {
+        stream.writeUint16(this.readHighlightColor[i]);
+      }
+      stream.writeUint16(0);
+      for(var i = 0; i < 4; i++) {
+        stream.writeUint16(this.readShadowColor[i]);
+      }
+    }
+  }
+
+  getLength():number {
+    return 82;
+  }
 }

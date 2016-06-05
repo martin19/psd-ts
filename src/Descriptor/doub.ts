@@ -1,12 +1,13 @@
 import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
-import {IDescriptorInfoParser} from "./DescriptorInfoParser";
+import {IDescriptorInfoBlock} from "./DescriptorInfoBlock";
+import {StreamWriter} from "../StreamWriter";
 
-export class doub implements IDescriptorInfoParser {
+export class doub implements IDescriptorInfoBlock {
 
   offset:number;
   length:number;
-  value:number
+  value:number;
 
 
   constructor() {
@@ -16,5 +17,13 @@ export class doub implements IDescriptorInfoParser {
     this.offset = stream.tell();
     this.value = stream.readFloat64();
     this.length = stream.tell() - this.offset;
+  }
+
+  write(stream:StreamWriter) {
+    stream.writeFloat64(this.value);
+  }
+
+  getLength() {
+    return 8;
   }
 }

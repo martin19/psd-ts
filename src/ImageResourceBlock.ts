@@ -1,4 +1,5 @@
 import {StreamReader} from "./StreamReader";
+import {StreamWriter} from "./StreamWriter";
 
 export class ImageResourceBlock {
 
@@ -25,6 +26,14 @@ export class ImageResourceBlock {
     this.data = stream.read(this.dataSize);
 
     this.length = stream.tell() - this.offset;
-  };
+  }
+  
+  write(stream:StreamWriter) {
+    stream.writeString("8BIM");
+    stream.writeUint16(this.identifier);
+    stream.writePascalString(this.name);
+    stream.writeUint32(this.data.length);
+    stream.write(this.data);
+  }
 }
 

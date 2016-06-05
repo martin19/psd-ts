@@ -18,14 +18,17 @@ import {type} from "./type";
 import {UnFl} from "./UnFl";
 import {UntF} from "./UntF";
 import {VlLs} from "./VlLs";
+import {StreamWriter} from "../StreamWriter";
 
-export interface IDescriptorInfoParser {
+export interface IDescriptorInfoBlock {
   parse(stream : StreamReader, length? : number, header? : Header):void;
+  write(stream : StreamWriter):void;
+  getLength():number;
 }
 
-export var DescriptorInfoParser : {[id:string]:any} = {
-  "alis" : alis, 
-  "bool" : bool, 
+export var DescriptorInfoBlock : {[id:string]:any} = {
+  "alis" : alis,
+  "bool" : bool,
   "doub" : doub, 
   "enum" : _enum, 
   "GlbC" : GlbC, 
@@ -41,5 +44,5 @@ export var DescriptorInfoParser : {[id:string]:any} = {
   "type" : type, 
   "UnFl" : UnFl, 
   "UntF" : UntF, 
-  "VlLs" : VlLs, 
+  "VlLs" : VlLs,
 };

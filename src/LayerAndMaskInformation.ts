@@ -3,6 +3,7 @@ import {GlobalLayerMaskInfo} from "./GlobalLayerMaskInfo";
 import {AdditionalLayerInfo} from "./AdditionalLayerInfo";
 import {StreamReader} from "./StreamReader";
 import {Header} from "./Header";
+import {StreamWriter} from "./StreamWriter";
 export class LayerAndMaskInformation {
 
   offset:number;
@@ -40,5 +41,24 @@ export class LayerAndMaskInformation {
 
     // TODO: remove
     stream.seek(pos, 0);
+  }
+
+  write(stream:StreamWriter, header:Header) {
+    stream.writeUint32(this.getLength());
+    this.layerInfo.write(stream, header);
+    this.globalLayerMaskInfo.write(stream, header);
+    if(this.additionalLayerInfo) {
+      this.additionalLayerInfo.write(stream, header);
+    }
+  }
+  
+  getLength() {
+    var length = 4;
+    length += this.layerInfo.getLength();
+    length += this.globalLayerMaskInfo.getLength();
+    if(this.additionalLayerInfo) {
+      length += this.additionalLayerInfo.getLength();
+    }
+    return length;
   }
 }
