@@ -30,6 +30,14 @@ export class Pattern {
 
   offset:number;
   length:number;
+
+  version : number;
+  mode : number;
+  vertical : number;
+  horizontal : number;
+  name : string;
+  id : string;
+  
   header : PatternHeader;
   channels : PatternChannel[];
 

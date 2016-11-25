@@ -34,11 +34,17 @@ export class lsct implements IAdditionalLayerInfoBlock {
 
   write(stream:StreamWriter):void {
     stream.writeUint32(this.type);
-    //stream.writeString("8BIM");
-    //stream.writeString(this.key);
+    if(this.key !== "norm") {
+      stream.writeString("8BIM");
+      stream.writeString(this.key);
+    }
   }
 
   getLength():number {
-    return 4;
+    if(this.key !== "norm") {
+      return 12;
+    } else {
+      return 4;
+    }
   }
 }
