@@ -5,6 +5,7 @@ import {StreamReader} from "./StreamReader";
 import {Header} from "./Header";
 import {LayerMaskData} from "./LayerMaskData";
 import {StreamWriter} from "./StreamWriter";
+
 export class LayerRecord {
 
   offset : number;

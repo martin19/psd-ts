@@ -90,14 +90,16 @@ export class Color {
       this.greenChannel = (<Uint8Array>g).subarray(0, idx);
       this.blueChannel = (<Uint8Array>b).subarray(0, idx);
     } else {
-      r.length = g.length = b.length = idx;
+      //TODO
+      //r.length = g.length = b.length = idx;
     }
 
     if (this.channel.length === 4) {
       if (USE_TYPEDARRAY) {
         this.alphaChannel = (<Uint8Array>a).subarray(0, idx);
       } else {
-        a.length = idx;
+        //TODO
+        //a.length = idx;
       }
     }
   }

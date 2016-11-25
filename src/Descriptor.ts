@@ -1,6 +1,13 @@
 import {StreamReader} from "./StreamReader";
 import {IDescriptorInfoBlock, DescriptorInfoBlock} from "./Descriptor/DescriptorInfoBlock";
 import {StreamWriter} from "./StreamWriter";
+
+export interface IDescriptorItem {
+  key:string,
+  type:string,
+  data:IDescriptorInfoBlock
+}
+
 export class Descriptor {
 
   offset:number;
@@ -8,7 +15,7 @@ export class Descriptor {
   name:string;
   classId:string;
   items:number;
-  item:Array<{key:string, type:string, data:IDescriptorInfoBlock}>;
+  item:Array<IDescriptorItem>;
 
 
   constructor() {
@@ -40,7 +47,6 @@ export class Descriptor {
 
       if (typeof DescriptorInfoBlock[type] !== 'function') {
         console.warn('OSType Key not implemented:', type);
-        //console.log(hoge, String.fromCharCode.apply(null, hoge));
         break;
       }
 

@@ -8,8 +8,6 @@ import {ChannelRLE} from "./ChannelRLE";
 import {ChannelRAW} from "./ChannelRAW";
 import {Color} from "./Color";
 import {StreamWriter} from "./StreamWriter";
-import {Layer} from "../../Layer/Layer";
-import {LayerInfo} from "./LayerInfo";
 
 export class ChannelImageData {
 
@@ -19,6 +17,7 @@ export class ChannelImageData {
 
 
   constructor() {
+    this.channel = [];
   }
 
   parse(stream:StreamReader, layerRecord:LayerRecord) {
@@ -76,15 +75,42 @@ export class ChannelImageData {
    * @returns {null}
    */
   createChannels(canvas:HTMLCanvasElement, layerRecord:LayerRecord):void {
-    var ctx = canvas.getContext("2d");
-    var width:number = canvas.width;
-    var height:number = canvas.height;
-    var imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
-    var pixelArray = imageData.data;
+    if(canvas) {
+      var ctx = canvas.getContext("2d");
+      var width:number = canvas.width;
+      var height:number = canvas.height;
+    }
 
-    if (width === 0 || height === 0) {
+    if (canvas == null || width === 0 || height === 0) {
+      this.channel = [];
+      this.channel.push(new ChannelRLE());
+      this.channel.push(new ChannelRLE());
+      this.channel.push(new ChannelRLE());
+      this.channel.push(new ChannelRLE());
+      this.channel[0].channel = new Uint8Array(0);
+      this.channel[1].channel = new Uint8Array(0);
+      this.channel[2].channel = new Uint8Array(0);
+      this.channel[3].channel = new Uint8Array(0);
+
+      //compress channels
+      for(var i = 0; i < 4;i++){
+        (this.channel[i] as ChannelRLE).prepare(layerRecord);
+      }
+
+      //layer record info seems to have length two for mask layer
+      //and layers of zero width/height
+      layerRecord.info = [
+        { id : -1, length : 2 },
+        { id : 0, length : 2 },
+        { id : 1, length : 2 },
+        { id : 2, length : 2 }
+      ];
       return null;
     }
+
+
+    var imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+    var pixelArray = imageData.data;
 
     this.channel = [];
     this.channel.push(new ChannelRLE());
@@ -122,13 +148,13 @@ export class ChannelImageData {
   }
 
   /**
-   * 
+   * Copy bitmap data in layerRecord to HTMLCanvasElement.
    * @param header
    * @param colorModeData
    * @param layerRecord
-   * @returns {any}
+   * @returns {HTMLCanvasElement}
    */
-  createCanvas(header:Header, colorModeData:ColorModeData, layerRecord:LayerRecord) {
+  createCanvas(header:Header, colorModeData:ColorModeData, layerRecord:LayerRecord):HTMLCanvasElement {
     var canvas:HTMLCanvasElement = document.createElement('canvas');
     var ctx:CanvasRenderingContext2D = canvas.getContext('2d');
     var width:number = canvas.width = (layerRecord.right - layerRecord.left);
@@ -148,7 +174,7 @@ export class ChannelImageData {
 
 
     if (width === 0 || height === 0) {
-      return null;
+      return canvas;
     }
 
     imageData = ctx.createImageData(width, height);

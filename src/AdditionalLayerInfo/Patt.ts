@@ -3,6 +3,7 @@ import {StreamReader} from "../StreamReader";
 import {Header} from "../Header";
 import {ColorMode} from "../Enum";
 import {StreamWriter} from "../StreamWriter";
+import {Pattern} from "../Pattern";
 export class Patt implements IAdditionalLayerInfoBlock {
 
   offset:number;
@@ -13,8 +14,7 @@ export class Patt implements IAdditionalLayerInfoBlock {
   horizontal : number;
   name : string;
   id : string;
-  // TODO: pattern  It is the object of a dedicated
-  pattern:Uint8Array;
+  patterns:Pattern[];
 
 
   constructor() {
@@ -24,18 +24,16 @@ export class Patt implements IAdditionalLayerInfoBlock {
     var limit:number = stream.tell() + length;
     var patternLength:number;
     var colorTable:Array<number>|Uint8Array;
-
+    this.patterns = [];
     this.offset = stream.tell();
 
-    // TODO
-    // 現在 Patt は長さが 0 のものしか見つかっていない
-    // 実際に動作するかどうかは確認する必要がある
     while (stream.tell() < limit) {
-      patternLength = stream.readUint32();
+      patternLength = stream.readUint32() + 3;
+      var patternStart = stream.tell();
       this.version = stream.readUint32();
       this.mode = stream.readInt32();
-      this.vertical = stream.readInt16(); // TODO: 確認
-      this.horizontal = stream.readInt16(); // TODO: 確認
+      this.vertical = stream.readInt16();
+      this.horizontal = stream.readInt16();
       this.name = stream.readWideString(stream.readUint32());
       this.id = stream.readPascalString();
 
@@ -43,8 +41,9 @@ export class Patt implements IAdditionalLayerInfoBlock {
         colorTable = stream.read(256 * 3);
       }
 
-      // TODO: 現在は何もしていない, Virtural Memory Array List
-      this.pattern = stream.read(limit - this.offset) as Uint8Array;
+      var pattern = new Pattern();
+      pattern.parse(stream, patternLength - (stream.tell() - patternStart));
+      this.patterns.push(pattern);
     }
 
     this.length = stream.tell() - this.offset;
@@ -52,7 +51,8 @@ export class Patt implements IAdditionalLayerInfoBlock {
 
 
   write(stream:StreamWriter, header : Header):void {
-    stream.writeUint32(this.pattern.length);
+    //TODO:
+    //stream.writeUint32(this.pattern.length);
     stream.writeUint32(1);
     stream.writeInt32(this.mode);
     stream.writeInt16(this.vertical);
@@ -64,7 +64,8 @@ export class Patt implements IAdditionalLayerInfoBlock {
       var colorTable = new Uint8Array(768);
       stream.write(colorTable);
     }
-    stream.write(this.pattern);
+    //TODO:
+    //stream.write(this.pattern);
   }
 
   getLength(header : Header):number {
