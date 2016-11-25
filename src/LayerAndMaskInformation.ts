@@ -10,7 +10,7 @@ export class LayerAndMaskInformation {
   length:number;
   layerInfo:LayerInfo;
   globalLayerMaskInfo:GlobalLayerMaskInfo;
-  additionalLayerInfo:AdditionalLayerInfo;
+  additionalLayerInfo:AdditionalLayerInfo[];
 
 
   constructor() {
@@ -32,12 +32,20 @@ export class LayerAndMaskInformation {
     // initialize
     this.layerInfo = new LayerInfo();
     this.globalLayerMaskInfo = new GlobalLayerMaskInfo();
-    this.additionalLayerInfo = new AdditionalLayerInfo();
+    //this.additionalLayerInfo = new AdditionalLayerInfo();
+    this.additionalLayerInfo = [];
 
     // parse
     this.layerInfo.parse(stream, header);
     this.globalLayerMaskInfo.parse(stream, header);
-    this.additionalLayerInfo.parse(stream, header);
+
+    while (stream.tell() < pos) {
+      let additionalLayerInfo = new AdditionalLayerInfo();
+      additionalLayerInfo.parse(stream, header);
+      this.additionalLayerInfo.push(additionalLayerInfo);
+    }
+
+    //this.additionalLayerInfo.parse(stream, header);
 
     // TODO: remove
     stream.seek(pos, 0);
@@ -47,18 +55,20 @@ export class LayerAndMaskInformation {
     stream.writeUint32(this.getLength());
     this.layerInfo.write(stream, header);
     this.globalLayerMaskInfo.write(stream, header);
-    if(this.additionalLayerInfo) {
-      this.additionalLayerInfo.write(stream, header);
-    }
+    //TODO: fixme
+    //if(this.additionalLayerInfo) {
+    //  this.additionalLayerInfo.write(stream, header);
+    //}
   }
   
   getLength() {
     var length = 4;
     length += this.layerInfo.getLength();
     length += this.globalLayerMaskInfo.getLength();
-    if(this.additionalLayerInfo) {
-      length += this.additionalLayerInfo.getLength();
-    }
+    //TODO: fixme
+    //if(this.additionalLayerInfo) {
+    //  length += this.additionalLayerInfo.getLength();
+    //}
     return length;
   }
 }
